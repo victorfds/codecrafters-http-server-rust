@@ -1,6 +1,7 @@
 use std::{
     io::{Read, Write},
     net::{TcpListener, TcpStream},
+    thread::spawn,
 };
 
 fn main() {
@@ -11,7 +12,7 @@ fn main() {
     for stream in listener.incoming() {
         match stream {
             Ok(mut stream) => {
-                handle_connection(&mut stream);
+                spawn(|| handle_connection(stream));
             }
             Err(e) => {
                 println!("error: {}", e);
@@ -20,7 +21,7 @@ fn main() {
     }
 }
 
-fn handle_connection(stream: &mut TcpStream) {
+fn handle_connection(mut stream: TcpStream) {
     let mut buffer = [0; 1024];
 
     stream.read(&mut buffer).unwrap();
