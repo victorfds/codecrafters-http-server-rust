@@ -29,8 +29,6 @@ fn handle_connection(stream: &mut TcpStream) {
     let lines: Vec<&str> = request.lines().collect();
     let first_line = *lines.first().unwrap();
     let third_line = *lines.get(2).unwrap();
-    let third_line_only_words: Vec<&str> = third_line.split_whitespace().collect();
-    let user_agent_value = third_line_only_words.get(1).unwrap();
 
     println!("Request: {}", request);
 
@@ -45,6 +43,9 @@ fn handle_connection(stream: &mut TcpStream) {
             )
         }
         line if line.starts_with("GET /user-agent") => {
+            let third_line_only_words: Vec<&str> = third_line.split_whitespace().collect();
+            let user_agent_value = *third_line_only_words.get(1).unwrap();
+
             format!(
                 "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {}\r\n\r\n{}",
                 user_agent_value.len(),
