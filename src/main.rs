@@ -69,7 +69,7 @@ fn handle_connection(mut stream: TcpStream) {
             }
         }
         line if line.starts_with("POST /files/") => {
-            let file_name = line.split_whitespace().nth(1).unwrap().split_at(9).1;
+            let file_name = line.split_whitespace().nth(1).unwrap().split_at(7).1;
             let env_args: Vec<String> = env::args().collect();
             let mut dir = env_args[2].clone();
             dir.push_str(file_name);
