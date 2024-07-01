@@ -1,5 +1,6 @@
 use std::{
-    env, fs,
+    env,
+    fs::{self, File},
     io::{Read, Write},
     net::{TcpListener, TcpStream},
     thread::spawn,
@@ -66,6 +67,16 @@ fn handle_connection(mut stream: TcpStream) {
             } else {
                 "HTTP/1.1 404 Not Found\r\n\r\n".to_string()
             }
+        }
+        line if line.starts_with("POST /files/") => {
+            let file_name = line.split_whitespace().nth(1).unwrap().split_at(9).1;
+            let env_args: Vec<String> = env::args().collect();
+            let mut dir = env_args[2].clone();
+            dir.push_str(file_name);
+            let mut file = File::create(dir).unwrap();
+            let contents = lines[5].trim_end_matches('\0');
+            file.write_all(contents.as_bytes()).unwrap();
+            "HTTP/1.1 201 Created\r\n\r\n".to_string()
         }
         _ => "HTTP/1.1 404 Not Found\r\n\r\n".to_string(),
     };
