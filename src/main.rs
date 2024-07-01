@@ -1,4 +1,5 @@
 use std::{
+    env, fs,
     io::{Read, Write},
     net::{TcpListener, TcpStream},
     thread::spawn,
@@ -11,7 +12,7 @@ fn main() {
 
     for stream in listener.incoming() {
         match stream {
-            Ok(mut stream) => {
+            Ok(stream) => {
                 spawn(|| handle_connection(stream));
             }
             Err(e) => {
@@ -52,6 +53,19 @@ fn handle_connection(mut stream: TcpStream) {
                 user_agent_value.len(),
                 user_agent_value
             )
+        }
+        line if line.starts_with("GET /file") => {
+            let file_name = line.split_whitespace().nth(1).unwrap().split_at(7).1;
+            let env_args: Vec<String> = env::args().collect();
+            let mut dir = env_args[2].clone();
+            dir.push_str(file_name);
+            let file = fs::read(dir);
+
+            if let Ok(response) = file {
+                format!("HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: {}\r\n\r\n{}", response.len(), String::from_utf8(response).expect("File content error"))
+            } else {
+                "HTTP/1.1 404 Not Found\r\n\r\n".to_string()
+            }
         }
         _ => "HTTP/1.1 404 Not Found\r\n\r\n".to_string(),
     };
